@@ -79,6 +79,11 @@ class ParseContentCommand extends Command
                     'preview_id' => $previewFile?->id
                 ]);
 
+                if ($this->option('fast') && !$comic->wasChanged()) {
+                    $comics[] = $comic->load('pages');
+                    return;
+                }
+
                 $comic->tags()->sync(
                     collect(
                         $td->find(new Filter(class: 'views-field views-field-field-category'))
