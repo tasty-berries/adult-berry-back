@@ -56,10 +56,7 @@ class TitleController extends Controller
                       ->inRandomOrder()
                       ->take(1)
                   )
-                  ->with('definedTitles', fn(BelongsToMany $titles) => $titles
-                      ->where('titles.id', $title->id)
-                      ->withPivot('role')
-                  )
+                  ->with('definedTitles', fn(BelongsToMany $titles) => $titles->withPivot('role'))
                   ->with('aliases')
                   ->withCount([
                       'comics'        => fn(Builder $comics) => $comics
