@@ -66,22 +66,31 @@ class ParseContentCommand extends Command
             callback: function (Element $td) use ($proxy, &$comics) {
                 $titleAnchor = $td->find(new Filter(class: 'views-field views-field-title'))->find(new Filter(name: 'a'));
 
+                $comic = Comic::where('link', $titleAnchor->attributes['href'])->first();
+
+                if ($this->option('fast') && $comic) {
+                    $comics[] = $comic->load('pages');
+                    return;
+                }
+
                 $previewFile = $this->makePreview(
                     $proxy,
                     $td->find(new Filter(class: 'views-field views-field-field-preview'))->find(new Filter(name: 'img'))
                 );
 
-                $comic = Comic::updateOrCreate([
-                    'link' => $titleAnchor->attributes['href']
-                ], [
-                    'title'      => html_entity_decode($titleAnchor->text),
-                    'views'      => (int)Str::replace(',', '', $td->find(new Filter(class: 'views-field views-field-totalcount'))->find(new Filter(name: 'strong'))->text),
-                    'preview_id' => $previewFile?->id
-                ]);
-
-                if ($this->option('fast') && !$comic->wasChanged()) {
-                    $comics[] = $comic->load('pages');
-                    return;
+                if (!$comic) {
+                    $comic = Comic::create([
+                        'link'       => $titleAnchor->attributes['href'],
+                        'title'      => html_entity_decode($titleAnchor->text),
+                        'views'      => (int)Str::replace(',', '', $td->find(new Filter(class: 'views-field views-field-totalcount'))->find(new Filter(name: 'strong'))->text),
+                        'preview_id' => $previewFile?->id
+                    ]);
+                } else {
+                    $comic->update([
+                        'title'      => html_entity_decode($titleAnchor->text),
+                        'views'      => (int)Str::replace(',', '', $td->find(new Filter(class: 'views-field views-field-totalcount'))->find(new Filter(name: 'strong'))->text),
+                        'preview_id' => $previewFile?->id
+                    ]);
                 }
 
                 $comic->tags()->sync(
