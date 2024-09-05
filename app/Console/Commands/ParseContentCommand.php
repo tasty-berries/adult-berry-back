@@ -21,7 +21,7 @@ use function Laravel\Prompts\progress;
 
 class ParseContentCommand extends Command
 {
-    protected $signature = 'parse:content {page?}';
+    protected $signature = 'parse:content {page?} {--fast}';
 
     protected $description = 'Command description';
 
@@ -91,7 +91,7 @@ class ParseContentCommand extends Command
                         ->all()
                 );
 
-                $comics[] = $comic;
+                $comics[] = $comic->load('pages');
             }
         );
 
@@ -101,6 +101,9 @@ class ParseContentCommand extends Command
             $comicDocument = $parser->parse($comicResponse);
 
             $images = $comicDocument->find(new Filter(name: 'noscript'))->findAll(new Filter(name: 'img'));
+
+            if ($this->option('fast') && count($images) <= count($comic->pages))
+                continue;
 
             $comic->tags()->sync(
                 collect(
