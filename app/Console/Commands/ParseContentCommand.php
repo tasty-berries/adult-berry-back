@@ -18,6 +18,7 @@ use Illuminate\Console\Command;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Str;
 use function Laravel\Prompts\progress;
+use function Laravel\Prompts\spin;
 
 class ParseContentCommand extends Command
 {
@@ -96,7 +97,10 @@ class ParseContentCommand extends Command
         );
 
         foreach ($comics as $comic) {
-            $comicResponse = $proxy->through()->get('https://multporn.net' . $comic->link)->body();
+            $comicResponse = spin(
+                callback: fn() => $proxy->through()->get('https://multporn.net' . $comic->link)->body(),
+                message: 'Fetching comic "' . $comic->title . '"...'
+            );
 
             $comicDocument = $parser->parse($comicResponse);
 
