@@ -19,7 +19,11 @@ class CharacterController extends Controller
     {
         return CharacterResource::collection(
             Character::query()
-                     ->with('comics', fn(BelongsToMany $comics) => $comics->inRandomOrder()->take(1))
+                     ->has('comics')
+                     ->with('comics', fn(BelongsToMany $comics) => $comics
+                         ->inRandomOrder()
+                         ->take(1)
+                     )
                      ->with('aliases', 'definedTitles')
                      ->withCount('comics')
                      ->orderByDesc('comics_count')
@@ -49,6 +53,11 @@ class CharacterController extends Controller
     {
         return TagResource::collection(
             $character->tags()
+                      ->whereHas('comics', fn(Builder $has) => $has
+                          ->whereHas('characters', fn(Builder $characters) => $characters
+                              ->where('characters.id', $character->id)
+                          )
+                      )
                       ->with('comics', fn(BelongsToMany $comics) => $comics
                           ->whereHas('characters', fn(Builder $characters) => $characters
                               ->where('characters.id', $character->id)
@@ -72,6 +81,11 @@ class CharacterController extends Controller
     {
         return TitleResource::collection(
             $character->titles()
+                      ->whereHas('comics', fn(Builder $has) => $has
+                          ->whereHas('characters', fn(Builder $characters) => $characters
+                              ->where('characters.id', $character->id)
+                          )
+                      )
                       ->with('comics', fn(BelongsToMany $comics) => $comics
                           ->whereHas('characters', fn(Builder $characters) => $characters
                               ->where('characters.id', $character->id)
@@ -95,6 +109,11 @@ class CharacterController extends Controller
     {
         return AuthorResource::collection(
             $character->authors()
+                      ->whereHas('comics', fn(Builder $has) => $has
+                          ->whereHas('characters', fn(Builder $characters) => $characters
+                              ->where('characters.id', $character->id)
+                          )
+                      )
                       ->with('comics', fn(HasMany $comics) => $comics
                           ->whereHas('characters', fn(Builder $characters) => $characters
                               ->where('characters.id', $character->id)

@@ -20,6 +20,7 @@ class TitleController extends Controller
     {
         return TitleResource::collection(
             Title::query()
+                 ->has('comics')
                  ->with('comics', fn(BelongsToMany $comics) => $comics->inRandomOrder()->take(1))
                  ->withCount('comics')
                  ->orderByDesc('comics_count')
@@ -49,6 +50,11 @@ class TitleController extends Controller
     {
         return CharacterResource::collection(
             $title->characters()
+                  ->whereHas('comics', fn(Builder $has) => $has
+                      ->whereHas('titles', fn(Builder $titles) => $titles
+                          ->where('titles.id', $title->id)
+                      )
+                  )
                   ->with('comics', fn(BelongsToMany $comics) => $comics
                       ->whereHas('titles', fn(Builder $titles) => $titles
                           ->where('titles.id', $title->id)
@@ -76,6 +82,11 @@ class TitleController extends Controller
     {
         return TagResource::collection(
             $title->tags()
+                  ->whereHas('comics', fn(Builder $has) => $has
+                      ->whereHas('titles', fn(Builder $titles) => $titles
+                          ->where('titles.id', $title->id)
+                      )
+                  )
                   ->with('comics', fn(BelongsToMany $comics) => $comics
                       ->whereHas('titles', fn(Builder $titles) => $titles
                           ->where('titles.id', $title->id)
@@ -99,6 +110,11 @@ class TitleController extends Controller
     {
         return AuthorResource::collection(
             $title->authors()
+                  ->whereHas('comics', fn(Builder $has) => $has
+                      ->whereHas('titles', fn(Builder $titles) => $titles
+                          ->where('titles.id', $title->id)
+                      )
+                  )
                   ->with('comics', fn(HasMany $comics) => $comics
                       ->whereHas('titles', fn(Builder $titles) => $titles
                           ->where('titles.id', $title->id)

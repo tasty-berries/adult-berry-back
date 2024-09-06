@@ -21,6 +21,7 @@ class AuthorController extends Controller
     {
         return AuthorResource::collection(
             Author::query()
+                  ->has('comics')
                   ->with('comics', fn(HasMany $comics) => $comics->inRandomOrder()->take(1))
                   ->withCount('comics')
                   ->withSum('comics', 'views')
@@ -51,6 +52,9 @@ class AuthorController extends Controller
     {
         return CharacterResource::collection(
             $author->characters()
+                   ->whereHas('comics', fn(Builder $has) => $has
+                       ->where('author_id', $author->id)
+                   )
                    ->with('comics', fn(BelongsToMany $comics) => $comics
                        ->where('author_id', $author->id)
                        ->inRandomOrder()
@@ -68,6 +72,9 @@ class AuthorController extends Controller
     {
         return TagResource::collection(
             $author->tags()
+                   ->whereHas('comics', fn(Builder $has) => $has
+                       ->where('author_id', $author->id)
+                   )
                    ->with('comics', fn(BelongsToMany $comics) => $comics
                        ->where('author_id', $author->id)
                        ->inRandomOrder()
@@ -84,6 +91,9 @@ class AuthorController extends Controller
     {
         return TitleResource::collection(
             $author->titles()
+                   ->whereHas('comics', fn(Builder $has) => $has
+                       ->where('author_id', $author->id)
+                   )
                    ->with('comics', fn(BelongsToMany $comics) => $comics
                        ->where('author_id', $author->id)
                        ->inRandomOrder()

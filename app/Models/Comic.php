@@ -2,11 +2,15 @@
 
 namespace App\Models;
 
+use App\Models\Scopes\LimitContentScope;
+use Illuminate\Database\Eloquent\Attributes\ScopedBy;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
+#[ScopedBy(LimitContentScope::class)]
 class Comic extends Model
 {
     protected $fillable = [

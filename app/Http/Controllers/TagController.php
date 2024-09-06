@@ -18,6 +18,7 @@ class TagController extends Controller
     {
         return TagResource::collection(
             Tag::query()
+                ->has('comics')
                ->with('comics', fn(BelongsToMany $comics) => $comics->inRandomOrder()->take(1))
                ->withCount('comics')
                ->orderByDesc('comics_count')
@@ -47,6 +48,11 @@ class TagController extends Controller
     {
         return CharacterResource::collection(
             $tag->characters()
+                ->whereHas('comics', fn(Builder $has) => $has
+                    ->whereHas('tags', fn(Builder $characters) => $characters
+                        ->where('tags.id', $tag->id)
+                    )
+                )
                 ->with('comics', fn(BelongsToMany $comics) => $comics
                     ->whereHas('tags', fn(Builder $tags) => $tags
                         ->where('tags.id', $tag->id)
@@ -70,6 +76,11 @@ class TagController extends Controller
     {
         return TitleResource::collection(
             $tag->titles()
+                ->whereHas('comics', fn(Builder $has) => $has
+                    ->whereHas('tags', fn(Builder $characters) => $characters
+                        ->where('tags.id', $tag->id)
+                    )
+                )
                 ->with('comics', fn(BelongsToMany $comics) => $comics
                     ->whereHas('tags', fn(Builder $characters) => $characters
                         ->where('tags.id', $tag->id)
@@ -93,6 +104,11 @@ class TagController extends Controller
     {
         return AuthorResource::collection(
             $tag->authors()
+                ->whereHas('comics', fn(Builder $has) => $has
+                    ->whereHas('tags', fn(Builder $characters) => $characters
+                        ->where('tags.id', $tag->id)
+                    )
+                )
                 ->with('comics', fn(HasMany $comics) => $comics
                     ->whereHas('tags', fn(Builder $characters) => $characters
                         ->where('tags.id', $tag->id)

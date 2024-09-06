@@ -5,10 +5,11 @@ namespace App\Http\Controllers;
 use App\Http\Resources\ComicResource;
 use App\Models\Comic;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Http\Request;
 
 class ComicController extends Controller
 {
-    public function index()
+    public function index(Request $request)
     {
         return ComicResource::collection(
             Comic::query()
