@@ -24,6 +24,7 @@ class AppServiceProvider extends ServiceProvider
             $content = explode(',', $raw);
             return [
                 'vanilla' => in_array('vanilla', $content),
+                'gay'     => in_array('gay', $content),
                 'furry'   => in_array('furry', $content),
                 'lolycon' => in_array('lolycon', $content),
                 'lesbian' => in_array('lesbian', $content),

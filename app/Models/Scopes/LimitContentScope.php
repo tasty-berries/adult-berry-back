@@ -17,6 +17,7 @@ class LimitContentScope implements Scope
         $allowedContent = Str::allowedContent(request()->header('Allowed-Content', 'vanilla'));
 
         $notVanillaTags = [
+            'Gay',
             'Furry',
             'Lolycon',
             'Lesbians',
@@ -25,6 +26,7 @@ class LimitContentScope implements Scope
         ];
 
         $builder->when(!$allowedContent['vanilla'], fn(Builder $when) => $when->whereHas('tags', fn(Builder $has) => $has->whereIn('name', $notVanillaTags)))
+                ->when(!$allowedContent['gay'], fn(Builder $when) => $when->whereDoesntHave('tags', fn(Builder $has) => $has->where('name', 'Gay')))
                 ->when(!$allowedContent['furry'], fn(Builder $when) => $when->whereDoesntHave('tags', fn(Builder $has) => $has->where('name', 'Furry')))
                 ->when(!$allowedContent['lolycon'], fn(Builder $when) => $when->whereDoesntHave('tags', fn(Builder $has) => $has->where('name', 'Lolycon')))
                 ->when(!$allowedContent['lesbian'], fn(Builder $when) => $when->whereDoesntHave('tags', fn(Builder $has) => $has->where('name', 'Lesbians')))
