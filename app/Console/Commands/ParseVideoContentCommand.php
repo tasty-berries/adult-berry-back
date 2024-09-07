@@ -151,7 +151,7 @@ class ParseVideoContentCommand extends Command
                                  ?->find(new Filter(name: 'a'));
 
             if ($authorEl) {
-                $video->author_id = Author::updateOrCreate(
+                $video->author_id = Author::firstOrCreate(
                     ['link' => $authorEl->attributes['href']],
                     ['name' => html_entity_decode($authorEl->text)]
                 )->id;
@@ -165,7 +165,7 @@ class ParseVideoContentCommand extends Command
             if ($tagsEl) {
                 $video->tags()->sync(
                     collect($tagsEl)
-                        ->map(fn(Element $element) => Tag::updateOrCreate(
+                        ->map(fn(Element $element) => Tag::firstOrCreate(
                             ['link' => $element->attributes['href']],
                             ['name' => html_entity_decode($element->text)]
                         ))
