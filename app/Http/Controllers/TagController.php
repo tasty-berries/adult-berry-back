@@ -18,7 +18,7 @@ class TagController extends Controller
     {
         return TagResource::collection(
             Tag::query()
-                ->has('comics')
+               ->has('comics')
                ->with('comics', fn(BelongsToMany $comics) => $comics->inRandomOrder()->take(1))
                ->withCount('comics')
                ->orderByDesc('comics_count')

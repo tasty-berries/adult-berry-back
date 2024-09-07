@@ -7,7 +7,6 @@ use App\Http\Resources\CharacterResource;
 use App\Http\Resources\ComicResource;
 use App\Http\Resources\TagResource;
 use App\Http\Resources\TitleResource;
-use App\Http\Resources\VideoResource;
 use App\Models\Author;
 use App\Models\Character;
 use App\Models\Tag;
@@ -143,15 +142,6 @@ class AuthorController extends Controller
                    ->orderByDesc('views')
                    ->orderBy('id')
                    ->paginate(perPage: 16)
-        );
-    }
-
-    public function videos(Author $author)
-    {
-        return VideoResource::collection(
-            $author->videos()
-                   ->orderByDesc('views')
-                   ->get()
         );
     }
 }

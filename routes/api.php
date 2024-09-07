@@ -7,7 +7,7 @@ use App\Http\Controllers\Control;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TitleController;
-use App\Http\Controllers\VideoController;
+use App\Http\Controllers\Video;
 use Illuminate\Support\Facades\Route;
 
 Route::get('comics', [ComicController::class, 'index']);
@@ -46,10 +46,15 @@ Route::get('authors/{author}/tags', [AuthorController::class, 'tags']);
 Route::get('authors/{author}/tags/{tag}', [AuthorController::class, 'tagComics']);
 Route::get('authors/{author}/titles', [AuthorController::class, 'titles']);
 Route::get('authors/{author}/titles/{title}', [AuthorController::class, 'titleComics']);
-Route::get('authors/{author}/videos', [AuthorController::class, 'videos']);
 
-Route::get('videos', [VideoController::class, 'index']);
-Route::get('videos/{video}', [VideoController::class, 'show']);
+
+Route::prefix('video')->group(function () {
+    Route::get('authors/{author}', [Video\AuthorController::class, 'show']);
+    Route::get('authors/{author}/videos', [Video\AuthorController::class, 'videos']);
+
+    Route::get('videos', [Video\VideoController::class, 'index']);
+    Route::get('videos/{video}', [Video\VideoController::class, 'show']);
+});
 
 Route::get('search', [SearchController::class, 'index']);
 
