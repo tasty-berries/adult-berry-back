@@ -14,7 +14,8 @@ class Video extends Model
         'link',
         'views',
         'author_id',
-        'video_id'
+        'video_id',
+        'section_id'
     ];
 
     public function preview(): BelongsTo
