@@ -70,15 +70,20 @@ class ParseVideoContentCommand extends Command
         /** @var Video[] $videos */
         $videos = [];
 
+        $changes = 0;
+
         progress(
             label: 'Parsing elements',
             steps: $tds,
-            callback: function (Element $td, Progress $progress) use (&$videos, $proxy) {
+            callback: function (Element $td, Progress $progress) use (&$videos, $proxy, &$changes) {
                 $titleEl = $td
                     ->find(new Filter(class: "views-field views-field-title"))
-                    ->find(new Filter(name: "a"));
+                    ?->find(new Filter(name: "a")) ?? null;
 
-                $video = [
+                if (!$titleEl)
+                    return;
+
+                $data = [
                     "title" => html_entity_decode($titleEl->text),
                     "link"  => $titleEl->attributes["href"],
                     "views" => preg_match(
@@ -94,18 +99,27 @@ class ParseVideoContentCommand extends Command
                     ->find(new Filter(class: "views-field views-field-field-vd-preciew"))
                     ->find(new Filter(name: "img"));
 
-                $videos[] = Video::updateOrCreate(
-                    ['link' => $video['link']],
+                $video = Video::updateOrCreate(
+                    ['link' => $data['link']],
                     [
-                        'title'      => $video['title'],
-                        'views'      => $video['views'],
+                        'title'      => $data['title'],
+                        'views'      => $data['views'],
                         'preview_id' => $previewEl ? $this->makeFile($proxy, $previewEl)?->id : null
                     ]
                 );
 
-                $progress->hint($video['title']);
+                $videos[] = $video;
+
+                $changes += $video->wasChanged() || $video->wasRecentlyCreated ? 1 : 0;
+
+                $progress->hint($data['title']);
             }
         );
+
+        if ($changes == 0) {
+            $this->info('Nothing changed. Skip.');
+            return;
+        }
 
         foreach ($videos as $video) {
             $response = spin(
