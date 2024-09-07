@@ -20,6 +20,11 @@ class Tag extends Model
         return $this->belongsToMany(Comic::class);
     }
 
+    public function videos(): BelongsToMany
+    {
+        return $this->belongsToMany(Video::class);
+    }
+
     public function characters(): Builder
     {
         return Character::query()

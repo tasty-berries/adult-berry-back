@@ -49,11 +49,15 @@ Route::get('authors/{author}/titles/{title}', [AuthorController::class, 'titleCo
 
 
 Route::prefix('video')->group(function () {
+    Route::get('videos', [Video\VideoController::class, 'index']);
+    Route::get('videos/{video}', [Video\VideoController::class, 'show']);
+
     Route::get('authors/{author}', [Video\AuthorController::class, 'show']);
     Route::get('authors/{author}/videos', [Video\AuthorController::class, 'videos']);
 
-    Route::get('videos', [Video\VideoController::class, 'index']);
-    Route::get('videos/{video}', [Video\VideoController::class, 'show']);
+    Route::get('tags', [Video\TagController::class, 'index']);
+    Route::get('tags/{tag}', [Video\TagController::class, 'show']);
+    Route::get('tags/{tag}/videos', [Video\TagController::class, 'videos']);
 });
 
 Route::get('search', [SearchController::class, 'index']);
