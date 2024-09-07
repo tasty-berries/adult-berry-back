@@ -20,6 +20,11 @@ class Author extends Model
         return $this->hasMany(Comic::class);
     }
 
+    public function videos(): HasMany
+    {
+        return $this->hasMany(Video::class);
+    }
+
     public function characters(): Builder
     {
         return Character::query()

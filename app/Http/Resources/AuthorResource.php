@@ -16,6 +16,7 @@ class AuthorResource extends JsonResource
             'name'   => $this->name,
             'link'   => $this->link,
             'comics' => ComicResource::collection($this->whenLoaded('comics')),
+            'videos' => VideoResource::collection($this->whenLoaded('videos')),
             ...isset($this['comics_count']) ? ['comics_count' => $this->comics_count] : [],
             ...isset($this['comics_sum_views']) ? ['comics_sum_views' => number_format($this->comics_sum_views)] : []
         ];

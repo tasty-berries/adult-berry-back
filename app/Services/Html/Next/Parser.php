@@ -227,7 +227,7 @@ class Parser
                 if (!$definition["ignore"]) {
                     $name = $definitionKey;
 
-                    if (!$definitionKey && preg_match('/^<([-_!A-Za-z]+)/', $tagBuffer, $matches)) {
+                    if (!$definitionKey && preg_match('/^<([-_!A-Za-z0-9]+)/', $tagBuffer, $matches)) {
                         $name = $matches[1];
                     }
 

@@ -3,10 +3,11 @@
 use App\Http\Controllers\AuthorController;
 use App\Http\Controllers\CharacterController;
 use App\Http\Controllers\ComicController;
+use App\Http\Controllers\Control;
 use App\Http\Controllers\SearchController;
 use App\Http\Controllers\TagController;
 use App\Http\Controllers\TitleController;
-use App\Http\Controllers\Control;
+use App\Http\Controllers\VideoController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('comics', [ComicController::class, 'index']);
@@ -45,6 +46,10 @@ Route::get('authors/{author}/tags', [AuthorController::class, 'tags']);
 Route::get('authors/{author}/tags/{tag}', [AuthorController::class, 'tagComics']);
 Route::get('authors/{author}/titles', [AuthorController::class, 'titles']);
 Route::get('authors/{author}/titles/{title}', [AuthorController::class, 'titleComics']);
+Route::get('authors/{author}/videos', [AuthorController::class, 'videos']);
+
+Route::get('videos', [VideoController::class, 'index']);
+Route::get('videos/{video}', [VideoController::class, 'show']);
 
 Route::get('search', [SearchController::class, 'index']);
 
