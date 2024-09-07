@@ -179,7 +179,7 @@ class ParseVideoContentCommand extends Command
                                   ?->find(new Filter(name: 'a'));
 
             if ($sectionEl) {
-                $video->section_id = Section::updateOrCreate(
+                $video->section_id = Section::firstOrCreate(
                     ['link' => $sectionEl->attributes['href']],
                     ['name' => html_entity_decode($sectionEl->text)]
                 )->id;

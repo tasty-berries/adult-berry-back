@@ -58,6 +58,10 @@ Route::prefix('video')->group(function () {
     Route::get('tags', [Video\TagController::class, 'index']);
     Route::get('tags/{tag}', [Video\TagController::class, 'show']);
     Route::get('tags/{tag}/videos', [Video\TagController::class, 'videos']);
+
+    Route::get('sections', [Video\SectionController::class, 'index']);
+    Route::get('sections/{section}', [Video\SectionController::class, 'show']);
+    Route::get('sections/{section}/videos', [Video\SectionController::class, 'videos']);
 });
 
 Route::get('search', [SearchController::class, 'index']);
