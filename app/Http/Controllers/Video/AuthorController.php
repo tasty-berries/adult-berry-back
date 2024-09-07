@@ -11,6 +11,23 @@ use Illuminate\Http\Request;
 
 class AuthorController extends Controller
 {
+    public function index(Request $request)
+    {
+        $data = $request->validate([
+            'ids' => 'nullable|array|exists:authors,id'
+        ]);
+
+        return AuthorResource::collection(
+            Author::has('videos')
+                  ->when($data['ids'] ?? false, fn(Builder $when) => $when
+                      ->whereIn('id', $data['ids'])
+                  )
+                  ->withCount('videos')
+                  ->orderByDesc('videos_count')
+                  ->get()
+        );
+    }
+
     public function show(Author $author)
     {
         return new AuthorResource($author);

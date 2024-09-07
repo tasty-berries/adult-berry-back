@@ -52,6 +52,7 @@ Route::prefix('video')->group(function () {
     Route::get('videos', [Video\VideoController::class, 'index']);
     Route::get('videos/{video}', [Video\VideoController::class, 'show']);
 
+    Route::get('authors', [Video\AuthorController::class, 'index']);
     Route::get('authors/{author}', [Video\AuthorController::class, 'show']);
     Route::get('authors/{author}/videos', [Video\AuthorController::class, 'videos']);
 
