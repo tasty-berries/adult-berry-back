@@ -14,13 +14,17 @@ class VideoController extends Controller
     public function index(Request $request)
     {
         $data = $request->validate([
-            'search' => 'nullable|string|max:255'
+            'search' => 'nullable|string|max:255',
+            'ids'    => 'nullable|array|exists:videos,id',
         ]);
 
         return VideoResource::collection(
             Video::query()
                  ->when($data['search'] ?? false, fn(Builder $when) => $when
                      ->where('title', 'LIKE', '%' . $data['search'] . '%')
+                 )
+                 ->when($data['ids'] ?? false, fn(Builder $when) => $when
+                     ->whereIn('id', $data['ids'])
                  )
                  ->whereNotNull('video_id')
                  ->orderByDesc('views')
