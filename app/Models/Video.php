@@ -36,4 +36,9 @@ class Video extends Model
     {
         return $this->belongsToMany(Tag::class);
     }
+
+    public function section(): BelongsTo
+    {
+        return $this->belongsTo(Section::class);
+    }
 }

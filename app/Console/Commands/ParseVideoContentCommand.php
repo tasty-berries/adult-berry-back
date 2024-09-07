@@ -4,6 +4,7 @@ namespace App\Console\Commands;
 
 use App\Models\Author;
 use App\Models\File;
+use App\Models\Section;
 use App\Models\Tag;
 use App\Models\Video;
 use App\Services\Html\Next\Element;
@@ -31,13 +32,14 @@ class ParseVideoContentCommand extends Command
         $ext        = $extParts[count($extParts) - 1];
         $myFilename = Str::uuid() . '.' . $ext;
 
-        $file    = File::where('link', $link)->first();
-        $content = $proxy->through(timeout: 60)->get($link);
-
-        if (!$content->ok())
-            return null;
+        $file = File::where('link', $link)->first();
 
         if (!$file) {
+            $content = $proxy->through(timeout: 60)->get($link);
+
+            if (!$content->ok())
+                return null;
+
             $file = File::create([
                 'link' => $link,
                 'path' => Storage::disk('public')->put("$prefix/" . $myFilename, $content->body()) ? "$prefix/" . $myFilename : null
@@ -70,12 +72,10 @@ class ParseVideoContentCommand extends Command
         /** @var Video[] $videos */
         $videos = [];
 
-        $changes = 0;
-
         progress(
             label: 'Parsing elements',
             steps: $tds,
-            callback: function (Element $td, Progress $progress) use (&$videos, $proxy, &$changes) {
+            callback: function (Element $td, Progress $progress) use (&$videos, $proxy) {
                 $titleEl = $td
                     ->find(new Filter(class: "views-field views-field-title"))
                     ?->find(new Filter(name: "a")) ?? null;
@@ -110,21 +110,16 @@ class ParseVideoContentCommand extends Command
 
                 $videos[] = $video;
 
-                $changes += $video->wasChanged() || $video->wasRecentlyCreated ? 1 : 0;
-
                 $progress->hint($data['title']);
             }
         );
 
-        if ($changes == 0) {
-            $this->info('Nothing changed. Skip.');
-            return;
-        }
-
         foreach ($videos as $video) {
+            $this->info('[' . $video->title . ']');
+
             $response = spin(
                 callback: fn() => $proxy->through()->get('https://multporn.net' . $video->link)->body(),
-                message: 'Parsing video...'
+                message: '~ Parsing video...'
             );
 
             $document = $parser->parse($response);
@@ -132,18 +127,25 @@ class ParseVideoContentCommand extends Command
             $videoEl = $document->find(new Filter(name: 'video'))?->find(new Filter(name: 'source'));
 
             if (!$videoEl) {
-                $this->warn('Video "' . $video->title . '" not parsed: video tag not found.');
+                $this->warn('~ Video not parsed: video tag not found.');
                 continue;
             }
 
-            $this->info('Video "' . $video->title . '" parsed!');
+            $this->info('~ Video parsed!');
 
-            $video->video_id = spin(
-                callback: fn() => $this->makeFile($proxy, $videoEl, 'videos')?->id,
-                message: 'Downloading video...'
+            $videoFile = spin(
+                callback: fn() => $this->makeFile($proxy, $videoEl, 'videos'),
+                message: '~ Downloading video...'
             );
 
-            $this->info('Video "' . $video->title . '" downloaded!');
+            if ($videoFile && $videoFile->wasRecentlyCreated) {
+                $video->video_id = $videoFile->id;
+                $this->info('~ Video downloaded!');
+            } else if ($videoFile) {
+                $this->warn('~ Video already exist.');
+            } else {
+                $this->error('~ Video not found.');
+            }
 
             $authorEl = $document->find(new Filter(class: 'field field-name-field-vd-authors field-type-taxonomy-term-reference field-label-above clearfix'))
                                  ?->find(new Filter(name: 'a'));
@@ -153,21 +155,41 @@ class ParseVideoContentCommand extends Command
                     ['link' => $authorEl->attributes['href']],
                     ['name' => html_entity_decode($authorEl->text)]
                 )->id;
+
+                $this->info('~ Author created/updated.');
             }
 
             $tagsEl = $document->find(new Filter(class: 'field field-name-field-vd-tags field-type-taxonomy-term-reference field-label-above clearfix'))
                                ?->findAll(new Filter(name: 'a')) ?? [];
 
-            $video->tags()->sync(
-                collect($tagsEl)
-                    ->map(fn(Element $element) => Tag::updateOrCreate(
-                        ['link' => $element->attributes['href']],
-                        ['name' => html_entity_decode($element->text)]
-                    ))
-                    ->map(fn(Tag $tag) => $tag->id)
-            );
+            if ($tagsEl) {
+                $video->tags()->sync(
+                    collect($tagsEl)
+                        ->map(fn(Element $element) => Tag::updateOrCreate(
+                            ['link' => $element->attributes['href']],
+                            ['name' => html_entity_decode($element->text)]
+                        ))
+                        ->map(fn(Tag $tag) => $tag->id)
+                );
+
+                $this->info('~ Tags synced.');
+            }
+
+            $sectionEl = $document->find(new Filter(class: 'field field-name-field-vd-group field-type-taxonomy-term-reference field-label-above clearfix'))
+                                  ?->find(new Filter(name: 'a'));
+
+            if ($sectionEl) {
+                $video->section_id = Section::updateOrCreate(
+                    ['link' => $sectionEl->attributes['href']],
+                    ['name' => html_entity_decode($sectionEl->text)]
+                )->id;
+
+                $this->info('~ Section created/updated.');
+            }
 
             $video->save();
+
+            $this->info("");
         }
     }
 }
