@@ -12,12 +12,13 @@ class VideoResource extends JsonResource
     public function toArray(Request $request): array
     {
         return [
-            'id'      => $this->id,
-            'title'   => $this->title,
-            'preview' => $this->preview?->path,
-            'views'   => number_format($this->views),
-            'video'   => $this->video?->path,
-            'author'  => new AuthorResource($this->author),
+            'id'           => $this->id,
+            'title'        => $this->title,
+            'preview'      => $this->preview?->path,
+            'views'        => number_format($this->views),
+            'video'        => $this->video?->path,
+            'author'       => new AuthorResource($this->author),
+            'hentai_title' => new TitleResource($this->hentaiTitle),
             'tags'    => TagResource::collection($this->whenLoaded('tags'))
         ];
     }

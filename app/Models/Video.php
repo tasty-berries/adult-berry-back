@@ -43,8 +43,8 @@ class Video extends Model
         return $this->belongsTo(Section::class);
     }
 
-    public function title(): BelongsTo
+    public function hentaiTitle(): BelongsTo
     {
-        return $this->belongsTo(Title::class);
+        return $this->belongsTo(Title::class, 'title_id');
     }
 }
