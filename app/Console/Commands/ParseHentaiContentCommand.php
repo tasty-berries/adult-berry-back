@@ -6,6 +6,7 @@ use App\Models\Author;
 use App\Models\File;
 use App\Models\Section;
 use App\Models\Tag;
+use App\Models\Title;
 use App\Models\Video;
 use App\Services\Html\Next\Element;
 use App\Services\Html\Next\Filter;
@@ -188,6 +189,18 @@ class ParseHentaiContentCommand extends Command
                 )->id;
 
                 $this->info('~ Section created/updated.');
+            }
+
+            $titleEl = $document->find(new Filter(class: 'field field-name-field-vd-hentai-group field-type-taxonomy-term-reference field-label-hidden clearfix'))
+                                ?->find(new Filter(name: 'a'));
+
+            if ($titleEl) {
+                $video->title_id = Title::firstOrCreate(
+                    ['link' => $titleEl->attributes['href']],
+                    ['name' => html_entity_decode($titleEl->text)]
+                )->id;
+
+                $this->info('~ Title created/updated.');
             }
 
             $video->save();

@@ -42,4 +42,9 @@ class Video extends Model
     {
         return $this->belongsTo(Section::class);
     }
+
+    public function title(): BelongsTo
+    {
+        return $this->belongsTo(Title::class);
+    }
 }
