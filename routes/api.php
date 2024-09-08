@@ -82,5 +82,7 @@ Route::prefix('control')->group(function () {
 
         Route::get('characters/{character}/aliases/search', [Control\CharacterAliasController::class, 'search']);
         Route::apiResource('characters.aliases', Control\CharacterAliasController::class);
+
+        Route::get('filesystem', [Control\FilesystemController::class, 'index']);
     });
 });
