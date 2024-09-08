@@ -28,19 +28,23 @@ class ParseContentCommand extends Command
 
     private function makePreview(ProxyService $proxy, Element $element): ?File
     {
-        $link     = $element->attributes['src'];
-        $filename = basename(parse_url($link)['path']);
+        $link       = $element->attributes['src'];
+        $filename   = basename(parse_url($link)['path']);
+        $extParts   = explode('.', $filename);
+        $ext        = $extParts[count($extParts) - 1];
+        $myFilename = Str::uuid() . '.' . $ext;
 
-        $file    = File::where('link', $link)->first();
-        $content = $proxy->through()->get($link);
-
-        if (!$content->ok())
-            return null;
+        $file = File::where('link', $link)->first();
 
         if (!$file) {
+            $content = $proxy->through()->get($link);
+
+            if (!$content->ok())
+                return null;
+
             $file = File::create([
                 'link' => $link,
-                'path' => Storage::disk('public')->put('previews/' . $filename, $content->body()) ? 'previews/' . $filename : null
+                'path' => Storage::disk('public')->put("previews/" . $myFilename, $content->body()) ? "previews/" . $myFilename : null
             ]);
         }
 
@@ -66,7 +70,7 @@ class ParseContentCommand extends Command
             callback: function (Element $td) use ($proxy, &$comics) {
                 $titleAnchor = $td->find(new Filter(class: 'views-field views-field-title'))->find(new Filter(name: 'a'));
 
-                $comic = Comic::where('link', $titleAnchor->attributes['href'])->first();
+                $comic = Comic::withoutGlobalScopes()->where('link', $titleAnchor->attributes['href'])->first();
 
                 if ($this->option('fast') && $comic) {
                     $comics[] = $comic->load('pages');
@@ -98,7 +102,7 @@ class ParseContentCommand extends Command
                         $td->find(new Filter(class: 'views-field views-field-field-category'))
                            ?->findAll(new Filter(name: 'a')) ?? []
                     )
-                        ->map(fn(Element $element) => Tag::firstOrCreate(
+                        ->map(fn(Element $element) => Tag::withoutGlobalScopes()->firstOrCreate(
                             ['link' => $element->attributes['href']],
                             ['name' => html_entity_decode($element->text)]
                         ))
@@ -127,7 +131,7 @@ class ParseContentCommand extends Command
                 collect(
                     $comicDocument->find(new Filter(class: 'field field-name-field-category field-type-taxonomy-term-reference field-label-inline clearfix'))
                                   ?->findAll(new Filter(name: 'a')) ?? []
-                )->map(fn(Element $element) => Tag::firstOrCreate(
+                )->map(fn(Element $element) => Tag::withoutGlobalScopes()->firstOrCreate(
                     ['link' => $element->attributes['href']],
                     ['name' => html_entity_decode($element->text)]
                 ))
@@ -140,13 +144,13 @@ class ParseContentCommand extends Command
                     $comicDocument->find(new Filter(class: 'field field-name-field-characters field-type-taxonomy-term-reference field-label-inline clearfix'))
                                   ?->findAll(new Filter(name: 'a')) ?? []
                 )->map(function (Element $element) {
-                    $character = Character::where('link', $element->attributes['href'])->first();
+                    $character = Character::withoutGlobalScopes()->where('link', $element->attributes['href'])->first();
 
                     if (!$character)
-                        $character = CharacterAlias::where('link', $element->attributes['href'])->first()?->character;
+                        $character = CharacterAlias::withoutGlobalScopes()->where('link', $element->attributes['href'])->first()?->character;
 
                     if (!$character) {
-                        $character = Character::create([
+                        $character = Character::withoutGlobalScopes()->create([
                             'name' => html_entity_decode($element->text),
                             'link' => $element->attributes['href']
                         ]);
@@ -173,7 +177,7 @@ class ParseContentCommand extends Command
                     'Furry',
                     'Halloween'
                 ]))
-                 ->map(fn(Element $element) => Title::firstOrCreate(
+                 ->map(fn(Element $element) => Title::withoutGlobalScopes()->firstOrCreate(
                      ['link' => $element->attributes['href']],
                      ['name' => html_entity_decode($element->text)]
                  ))
@@ -185,7 +189,7 @@ class ParseContentCommand extends Command
                                     ?->find(new Filter(name: 'a'));
 
             if ($author) {
-                $comic->author_id = Author::firstOrCreate(
+                $comic->author_id = Author::withoutGlobalScopes()->firstOrCreate(
                     ['link' => $author->attributes['href']],
                     ['name' => html_entity_decode($author->text)]
                 )->id;
@@ -223,7 +227,7 @@ class ParseContentCommand extends Command
                     if (!$imageFile)
                         return;
 
-                    ComicPage::firstOrCreate([
+                    ComicPage::withoutGlobalScopes()->firstOrCreate([
                         'comic_id' => $comic->id,
                         'image_id' => $imageFile->id
                     ]);
