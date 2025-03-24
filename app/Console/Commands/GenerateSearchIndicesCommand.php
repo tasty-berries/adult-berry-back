@@ -23,7 +23,7 @@ class GenerateSearchIndicesCommand extends Command
         SearchIndex::truncate();
 
         $grouped = collect([
-            ...Comic::orderBy('views')->get(),
+            ...Comic::withoutGlobalScopes()->orderBy('views')->get(),
             ...Character::withCount('comics')->orderByDesc('comics_count')->get(),
             ...CharacterAlias::with('character')->get(),
             ...Tag::withCount('comics')->orderByDesc('comics_count')->get(),
